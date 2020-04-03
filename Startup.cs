@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Exceptions;
+using Serilog.Sinks.Elasticsearch;
 using docker_api.Models;
 
 namespace docker_api
@@ -19,6 +22,14 @@ namespace docker_api
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            // Log.Logger = new LoggerConfiguration()
+            //     .Enrich.FromLogContext()
+            //     .Enrich.WithExceptionDetails()
+            //     .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(configuration["ElasticConfiguration:Uri"]))
+            //     {
+            //         AutoRegisterTemplate = true,
+            //     })
+            // .CreateLogger();
         }
 
         public IConfiguration Configuration { get; }
