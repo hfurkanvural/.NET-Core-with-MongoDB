@@ -49,12 +49,12 @@ namespace docker_api
                 options.AddPolicy(MyAllowSpecificOrigins,
                 builder =>
                 {
-                    builder.WithOrigins("http://localhost:5000","https://localhost:5000")
+                    builder.WithOrigins("http://localhost:5000","https://localhost:5000","http://localhost:5001","https://localhost:5001")
                     .AllowAnyHeader()
                     .AllowAnyMethod();
                 });
             });
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             // services.AddControllers();
         }
 

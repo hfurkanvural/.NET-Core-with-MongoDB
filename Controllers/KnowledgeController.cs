@@ -57,9 +57,19 @@ namespace docker_api.Controllers
         public async Task<ActionResult<Knowledge>> Put(long id, [FromBody] Knowledge knowledge)
         {
              _logger.LogInformation("Put method of knowledge controller executed at {date}", DateTime.UtcNow);
+            
             var knowledgeFromDb = await _repo.GetKnowledge(id);
-            if (knowledgeFromDb == null)
+            try
+            {
+                if (knowledgeFromDb == null)
+                    throw new InvalidKnowledgeException(id);
+            }
+            catch(InvalidKnowledgeException ex)
+            {
+                _logger.LogError(ex, "Error Found!");
                 return new NotFoundResult();
+            }
+           
             knowledge.id = knowledgeFromDb.id;
             knowledge.InternalId = knowledgeFromDb.InternalId;
             await _repo.Update(knowledge);
@@ -80,14 +90,17 @@ namespace docker_api.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete()
         {
-            try
-            {
-                throw new Exception("oops! something went wrong!?");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error Found!");
-            }
+            Exception newEx = new System.IO.FileNotFoundException();
+
+            _logger.LogError(newEx, newEx.Message);
+            // try
+            // {
+            //     throw new Exception("oops! something went wrong!?");
+            // }
+            // catch (Exception ex)
+            // {
+            //     _logger.LogError(ex, "Error Found!");
+            // }
 
             return new BadRequestResult();
 
