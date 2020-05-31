@@ -14,6 +14,7 @@ using Serilog;
 using Serilog.Exceptions;
 using Serilog.Sinks.Elasticsearch;
 using docker_api.Models;
+using Prometheus;
 
 namespace docker_api
 {
@@ -66,6 +67,20 @@ namespace docker_api
                 app.UseDeveloperExceptionPage();
             }
 
+            app.Use((context, next) =>
+            {
+                // Http Context
+                var counter = Metrics.CreateCounter
+                ("PathCounter", "Count request", 
+                new CounterConfiguration{
+                    LabelNames = new [] {"method", "endpoint"}
+                }); 
+                // method: GET, POST etc.
+                // endpoint: Requested path
+                counter.WithLabels(context.Request.Method, context.Request.Path).Inc();
+                return next();
+            });
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -78,6 +93,9 @@ namespace docker_api
             {
                 endpoints.MapControllers();
             });
+
+
+            app.UseMetricServer();
         }
     }
 }

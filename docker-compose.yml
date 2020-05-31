@@ -1,37 +1,56 @@
-version: '3.1'
+version: "3.4"
+configs:
+  prometheus_config:
+    file: ./prometheus.yml
 
-services:
 
-  elasticsearch:
-   container_name: elasticsearch
-   image: docker.elastic.co/elasticsearch/elasticsearch:7.6.1
-   ports:
-    - 9200:9200
-   volumes:
-    - elasticsearch-data:/usr/share/elasticsearch/data
-   environment:
-    - xpack.monitoring.enabled=true
-    - xpack.watcher.enabled=false
-    - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    - discovery.type=single-node
-   networks:
-    - elastic
-
-  kibana:
-   container_name: kibana
-   image: docker.elastic.co/kibana/kibana:7.6.1
-   ports:
-    - 5601:5601
-   depends_on:
-    - elasticsearch
-   environment:
-    - ELASTICSEARCH_URL=http://localhost:9200
-   networks:
-    - elastic
-  
 networks:
-  elastic:
-    driver: bridge
+  inner_net:
+    driver: overlay
+  
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: hfv
+      MONGO_INITDB_ROOT_PASSWORD: test
+    ports:
+      - 27017:27017
 
-volumes:
-  elasticsearch-data:
+  knowledge_api:
+    image: "knowledge_api"
+    ports:
+      - "8080:80"
+    networks: 
+      - inner_net
+    environment:
+      MongoDB__Host: mongo
+    depends_on:
+      - mongo
+
+  prometheus:
+    image: knowledge_prometheus:latest
+    ports:
+      - "9090:9090"
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+    depends_on:
+      - knowledge_api
+    networks:
+      - inner_net
+      
+  grafana:
+    image : grafana/grafana
+    depends_on: 
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/data/:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./config.monitoring
+    networks:
+      - inner_net
